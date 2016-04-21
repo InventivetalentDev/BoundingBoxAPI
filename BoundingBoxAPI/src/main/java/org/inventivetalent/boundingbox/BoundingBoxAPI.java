@@ -1,0 +1,148 @@
+/*
+ * Copyright 2016 inventivetalent. All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without modification, are
+ *  permitted provided that the following conditions are met:
+ *
+ *     1. Redistributions of source code must retain the above copyright notice, this list of
+ *        conditions and the following disclaimer.
+ *
+ *     2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *        of conditions and the following disclaimer in the documentation and/or other materials
+ *        provided with the distribution.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ *  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR
+ *  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ *  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ *  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ *  The views and conclusions contained in the software and documentation are those of the
+ *  authors and contributors and should not be interpreted as representing official policies,
+ *  either expressed or implied, of anybody else.
+ */
+
+package org.inventivetalent.boundingbox;
+
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.inventivetalent.reflection.minecraft.Minecraft;
+import org.inventivetalent.reflection.resolver.FieldResolver;
+import org.inventivetalent.reflection.resolver.MethodResolver;
+import org.inventivetalent.reflection.resolver.ResolverQuery;
+import org.inventivetalent.reflection.resolver.minecraft.NMSClassResolver;
+import org.inventivetalent.vectors.d3.Vector3DDouble;
+import org.inventivetalent.vectors.d3.Vector3DInt;
+
+public class BoundingBoxAPI {
+
+	static NMSClassResolver nmsClassResolver = new NMSClassResolver();
+
+	static Class<?> Entity        = nmsClassResolver.resolveSilent("Entity");
+	static Class<?> Block         = nmsClassResolver.resolveSilent("Block");
+	static Class<?> BlockPosition = nmsClassResolver.resolveSilent("BlockPosition");
+	static Class<?> Chunk         = nmsClassResolver.resolveSilent("Chunk");
+	static Class<?> IBlockData    = nmsClassResolver.resolveSilent("IBlockData");
+	static Class<?> IBlockAccess  = nmsClassResolver.resolveSilent("IBlockAccess");
+
+	static FieldResolver EntityFieldResolver = new FieldResolver(Entity);
+	static FieldResolver BlockFieldResolver  = new FieldResolver(Block);
+
+	static MethodResolver BlockMethodResolver      = new MethodResolver(Block);
+	static MethodResolver ChunkMethodResolver      = new MethodResolver(Chunk);
+	static MethodResolver IBlockDataMethodResolver = new MethodResolver(IBlockData);
+	static MethodResolver EntityMethodResolver     = new MethodResolver(Entity);
+
+	public static BoundingBox getBoundingBox(Entity entity) {
+		return getAbsoluteBoundingBox(entity).translate(new Vector3DDouble(entity.getLocation().toVector().multiply(-1)));
+	}
+
+	public static BoundingBox getAbsoluteBoundingBox(Entity entity) {
+		try {
+			return BoundingBox.fromNMS(EntityFieldResolver.resolve("boundingBox").get(Minecraft.getHandle(entity)));
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void setBoundingBox(Entity entity, BoundingBox boundingBox) {
+		try {
+			EntityFieldResolver.resolve("boundingBox").set(Minecraft.getHandle(entity), boundingBox.toNMS());
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void setSize(Entity entity, float width, float length) {
+		try {
+			EntityMethodResolver.resolve(new ResolverQuery("setSize", float.class, float.class)).invoke(Minecraft.getHandle(entity), width, length);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static BoundingBox getBoundingBox(Block block) {
+		try {
+			Location location = block.getLocation();
+
+			Object blockPosition = BlockPosition.getConstructor(double.class, double.class, double.class).newInstance(location.getX(), location.getY(), location.getZ());
+			Object iBlockData = ChunkMethodResolver.resolve(new ResolverQuery("getBlockData", BlockPosition)).invoke(Minecraft.getHandle(block.getChunk()), blockPosition);
+			Object iBlockAccess = Minecraft.getHandle(location.getWorld());
+			Object nmsBlock = IBlockDataMethodResolver.resolve("getBlock").invoke(iBlockData);
+
+			return BoundingBox.fromNMS(BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition));
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static BoundingBox getAbsoluteBoundingBox(Block block) {
+		return getBoundingBox(block).translate(new Vector3DDouble(block.getLocation().toVector()));
+	}
+
+	public static Runnable drawParticleOutline(final BoundingBox boundingBox, final World world, final Particle particle) {
+		return new Runnable() {
+			@Override
+			public void run() {
+				Vector3DInt minCorner = new Vector3DInt((int) (boundingBox.minX * 1000), (int) (boundingBox.minY * 1000), (int) (boundingBox.minZ * 1000));
+				Vector3DInt maxCorner = new Vector3DInt((int) (boundingBox.maxX * 1000), (int) (boundingBox.maxY * 1000), (int) (boundingBox.maxZ * 1000));
+
+				int i = 0;
+				for (int x = minCorner.getX(); x <= maxCorner.getX(); x += 20) {
+					for (int z = minCorner.getZ(); z <= maxCorner.getZ(); z += 20) {
+						for (int y = minCorner.getY(); y <= maxCorner.getY(); y += 20) {
+							Vector3DInt intVector = new Vector3DInt(x, y, z);
+							Vector3DDouble vector = new Vector3DDouble(x / 1000.D, y / 1000.0D, z / 1000.0D);
+							int edgeIntersectionCount = 0;
+
+							//https://bukkit.org/threads/calculating-the-edges-of-a-rectangle-cuboid-discussion.78267/#post-1142330
+							if (Math.abs(x - minCorner.getX()) < 8 || Math.abs(x - maxCorner.getX()) < 8) { edgeIntersectionCount++; }
+							if (Math.abs(y - minCorner.getY()) < 8 || Math.abs(y - maxCorner.getY()) < 8) { edgeIntersectionCount++; }
+							if (Math.abs(z - minCorner.getZ()) < 8 || Math.abs(z - maxCorner.getZ()) < 8) { edgeIntersectionCount++; }
+							if (edgeIntersectionCount >= 2) {
+								if (i++ % 9 != 0) { continue; }
+								world.spawnParticle(particle, vector.toBukkitLocation(world), 1);
+							}
+						}
+					}
+				}
+			}
+		};
+	}
+
+}
