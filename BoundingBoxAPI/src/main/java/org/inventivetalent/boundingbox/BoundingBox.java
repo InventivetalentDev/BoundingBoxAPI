@@ -135,6 +135,14 @@ public class BoundingBox {
 		return contains(vector.getX(), vector.getY(), vector.getZ());
 	}
 
+	public boolean contains(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+		return (this.minX < minX && this.maxX > maxX) && (this.minY < minY && this.maxY > maxY) && (this.minZ < minZ && this.maxZ > maxZ);
+	}
+
+	public boolean contains(BoundingBox other) {
+		return contains(other.minX, other.minY, other.minZ, other.maxX, other.maxY, other.maxZ);
+	}
+
 	public boolean intersects(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
 		return this.minX < maxX && this.maxX > minX && this.minY < maxY && this.maxY > minY && this.minZ < maxZ && this.maxZ > minZ;
 	}
