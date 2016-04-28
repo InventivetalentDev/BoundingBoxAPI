@@ -29,10 +29,10 @@
 package org.inventivetalent.boundingbox;
 
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.inventivetalent.particle.ParticleEffect;
 import org.inventivetalent.reflection.minecraft.Minecraft;
 import org.inventivetalent.reflection.resolver.FieldResolver;
 import org.inventivetalent.reflection.resolver.MethodResolver;
@@ -115,7 +115,7 @@ public class BoundingBoxAPI {
 		return getBoundingBox(block).translate(new Vector3DDouble(block.getLocation().toVector()));
 	}
 
-	public static Runnable drawParticleOutline(final BoundingBox boundingBox, final World world, final Particle particle) {
+	public static Runnable drawParticleOutline(final BoundingBox boundingBox, final World world, final org.bukkit.Particle particle) {
 		return new Runnable() {
 			@Override
 			public void run() {
@@ -126,7 +126,6 @@ public class BoundingBoxAPI {
 				for (int x = minCorner.getX(); x <= maxCorner.getX(); x += 20) {
 					for (int z = minCorner.getZ(); z <= maxCorner.getZ(); z += 20) {
 						for (int y = minCorner.getY(); y <= maxCorner.getY(); y += 20) {
-							Vector3DInt intVector = new Vector3DInt(x, y, z);
 							Vector3DDouble vector = new Vector3DDouble(x / 1000.D, y / 1000.0D, z / 1000.0D);
 							int edgeIntersectionCount = 0;
 
@@ -137,6 +136,36 @@ public class BoundingBoxAPI {
 							if (edgeIntersectionCount >= 2) {
 								if (i++ % 9 != 0) { continue; }
 								world.spawnParticle(particle, vector.toBukkitLocation(world), 1);
+							}
+						}
+					}
+				}
+			}
+		};
+	}
+
+	public static Runnable drawParticleOutline(final BoundingBox boundingBox, final World world, final ParticleEffect particle) {
+		return new Runnable() {
+			@Override
+			public void run() {
+				Vector3DInt minCorner = new Vector3DInt((int) (boundingBox.minX * 1000), (int) (boundingBox.minY * 1000), (int) (boundingBox.minZ * 1000));
+				Vector3DInt maxCorner = new Vector3DInt((int) (boundingBox.maxX * 1000), (int) (boundingBox.maxY * 1000), (int) (boundingBox.maxZ * 1000));
+
+				int i = 0;
+				for (int x = minCorner.getX(); x <= maxCorner.getX(); x += 20) {
+					for (int z = minCorner.getZ(); z <= maxCorner.getZ(); z += 20) {
+						for (int y = minCorner.getY(); y <= maxCorner.getY(); y += 20) {
+							Vector3DDouble vector = new Vector3DDouble(x / 1000.D, y / 1000.0D, z / 1000.0D);
+							int edgeIntersectionCount = 0;
+
+							//https://bukkit.org/threads/calculating-the-edges-of-a-rectangle-cuboid-discussion.78267/#post-1142330
+							if (Math.abs(x - minCorner.getX()) < 8 || Math.abs(x - maxCorner.getX()) < 8) { edgeIntersectionCount++; }
+							if (Math.abs(y - minCorner.getY()) < 8 || Math.abs(y - maxCorner.getY()) < 8) { edgeIntersectionCount++; }
+							if (Math.abs(z - minCorner.getZ()) < 8 || Math.abs(z - maxCorner.getZ()) < 8) { edgeIntersectionCount++; }
+							if (edgeIntersectionCount >= 2) {
+								if (i++ % 9 != 0) { continue; }
+								//								world.spawnParticle(particle, vector.toBukkitLocation(world), 1);
+								particle.send(world.getPlayers(), vector.toBukkitLocation(world), 0, 0, 0, 0, 1);
 							}
 						}
 					}
