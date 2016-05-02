@@ -46,6 +46,7 @@ public class BoundingBoxAPI {
 	static NMSClassResolver nmsClassResolver = new NMSClassResolver();
 
 	static Class<?> Entity        = nmsClassResolver.resolveSilent("Entity");
+	static Class<?> World = nmsClassResolver.resolveSilent("World");
 	static Class<?> Block         = nmsClassResolver.resolveSilent("Block");
 	static Class<?> BlockPosition = nmsClassResolver.resolveSilent("BlockPosition");
 	static Class<?> Chunk         = nmsClassResolver.resolveSilent("Chunk");
@@ -103,7 +104,11 @@ public class BoundingBoxAPI {
 			Object iBlockAccess = Minecraft.getHandle(location.getWorld());
 			Object nmsBlock = IBlockDataMethodResolver.resolve("getBlock").invoke(iBlockData);
 
-			return BoundingBox.fromNMS(BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition));
+			if(Minecraft.VERSION.newerThan(Minecraft.Version.v1_9_R1)) {
+				return BoundingBox.fromNMS(BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition));
+			}else{
+				return BoundingBox.fromNMS(BlockMethodResolver.resolve(new ResolverQuery("a", World, BlockPosition, IBlockData)).invoke(nmsBlock, iBlockAccess/*world*/, blockPosition, iBlockData));
+			}
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
