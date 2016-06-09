@@ -34,7 +34,7 @@
 
     <groupId>org.inventivetalent</groupId>
     <artifactId>boundingboxapi</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <name>BoundingBoxAPI</name>
 
     <build>
