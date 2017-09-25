@@ -1,31 +1,3 @@
-/*
- * Copyright 2016 inventivetalent. All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without modification, are
- *  permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this list of
- *        conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this list
- *        of conditions and the following disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ''AS IS'' AND ANY EXPRESS OR IMPLIED
- *  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR
- *  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- *  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- *  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  The views and conclusions contained in the software and documentation are those of the
- *  authors and contributors and should not be interpreted as representing official policies,
- *  either expressed or implied, of anybody else.
- */
-
 package org.inventivetalent.boundingbox;
 
 import com.google.gson.annotations.Expose;
@@ -36,6 +8,7 @@ import org.inventivetalent.reflection.resolver.minecraft.NMSClassResolver;
 import org.inventivetalent.vectors.d3.Vector3DDouble;
 
 @Data
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class BoundingBox {
 
 	static NMSClassResolver nmsClassResolver = new NMSClassResolver();
@@ -44,12 +17,18 @@ public class BoundingBox {
 
 	static FieldResolver AxisAlignedBBFieldResolver = new FieldResolver(AxisAlignedBB);
 
-	@Expose public final double minX;
-	@Expose public final double minY;
-	@Expose public final double minZ;
-	@Expose public final double maxX;
-	@Expose public final double maxY;
-	@Expose public final double maxZ;
+	@Expose
+	public final double minX;
+	@Expose
+	public final double minY;
+	@Expose
+	public final double minZ;
+	@Expose
+	public final double maxX;
+	@Expose
+	public final double maxY;
+	@Expose
+	public final double maxZ;
 
 	public BoundingBox(double x1, double y1, double z1, double x2, double y2, double z2) {
 		this.minX = Math.min(x1, x2);
@@ -66,6 +45,21 @@ public class BoundingBox {
 
 	public BoundingBox(Vector3DDouble vector1, Vector3DDouble vector2) {
 		this(vector1.getX(), vector1.getY(), vector1.getZ(), vector2.getX(), vector2.getY(), vector2.getZ());
+	}
+
+	public static BoundingBox fromNMS(Object axisAlignedBB) {
+		try {
+			double a = (double) AxisAlignedBBFieldResolver.resolve("a").get(axisAlignedBB);
+			double b = (double) AxisAlignedBBFieldResolver.resolve("b").get(axisAlignedBB);
+			double c = (double) AxisAlignedBBFieldResolver.resolve("c").get(axisAlignedBB);
+			double d = (double) AxisAlignedBBFieldResolver.resolve("d").get(axisAlignedBB);
+			double e = (double) AxisAlignedBBFieldResolver.resolve("e").get(axisAlignedBB);
+			double f = (double) AxisAlignedBBFieldResolver.resolve("f").get(axisAlignedBB);
+
+			return new BoundingBox(a, b, c, d, e, f);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public BoundingBox expand(double x, double y, double z) {
@@ -191,16 +185,30 @@ public class BoundingBox {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) { return true; }
-		if (o == null || getClass() != o.getClass()) { return false; }
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
 		BoundingBox that = (BoundingBox) o;
 
-		if (Double.compare(that.minX, minX) != 0) { return false; }
-		if (Double.compare(that.minY, minY) != 0) { return false; }
-		if (Double.compare(that.minZ, minZ) != 0) { return false; }
-		if (Double.compare(that.maxX, maxX) != 0) { return false; }
-		if (Double.compare(that.maxY, maxY) != 0) { return false; }
+		if (Double.compare(that.minX, minX) != 0) {
+			return false;
+		}
+		if (Double.compare(that.minY, minY) != 0) {
+			return false;
+		}
+		if (Double.compare(that.minZ, minZ) != 0) {
+			return false;
+		}
+		if (Double.compare(that.maxX, maxX) != 0) {
+			return false;
+		}
+		if (Double.compare(that.maxY, maxY) != 0) {
+			return false;
+		}
 		return Double.compare(that.maxZ, maxZ) == 0;
 
 	}
@@ -227,21 +235,6 @@ public class BoundingBox {
 	public Object toNMS() {
 		try {
 			return AxisAlignedBB.getConstructor(double.class, double.class, double.class, double.class, double.class, double.class).newInstance(minX, minY, minZ, maxX, maxY, maxZ);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public static BoundingBox fromNMS(Object axisAlignedBB) {
-		try {
-			double a = (double) AxisAlignedBBFieldResolver.resolve("a").get(axisAlignedBB);
-			double b = (double) AxisAlignedBBFieldResolver.resolve("b").get(axisAlignedBB);
-			double c = (double) AxisAlignedBBFieldResolver.resolve("c").get(axisAlignedBB);
-			double d = (double) AxisAlignedBBFieldResolver.resolve("d").get(axisAlignedBB);
-			double e = (double) AxisAlignedBBFieldResolver.resolve("e").get(axisAlignedBB);
-			double f = (double) AxisAlignedBBFieldResolver.resolve("f").get(axisAlignedBB);
-
-			return new BoundingBox(a, b, c, d, e, f);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
