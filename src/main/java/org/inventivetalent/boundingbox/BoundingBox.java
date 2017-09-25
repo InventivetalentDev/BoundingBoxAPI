@@ -17,12 +17,18 @@ public class BoundingBox {
 
 	static FieldResolver AxisAlignedBBFieldResolver = new FieldResolver(AxisAlignedBB);
 
-	@Expose public final double minX;
-	@Expose public final double minY;
-	@Expose public final double minZ;
-	@Expose public final double maxX;
-	@Expose public final double maxY;
-	@Expose public final double maxZ;
+	@Expose
+	public final double minX;
+	@Expose
+	public final double minY;
+	@Expose
+	public final double minZ;
+	@Expose
+	public final double maxX;
+	@Expose
+	public final double maxY;
+	@Expose
+	public final double maxZ;
 
 	public BoundingBox(double x1, double y1, double z1, double x2, double y2, double z2) {
 		this.minX = Math.min(x1, x2);
@@ -39,6 +45,21 @@ public class BoundingBox {
 
 	public BoundingBox(Vector3DDouble vector1, Vector3DDouble vector2) {
 		this(vector1.getX(), vector1.getY(), vector1.getZ(), vector2.getX(), vector2.getY(), vector2.getZ());
+	}
+
+	public static BoundingBox fromNMS(Object axisAlignedBB) {
+		try {
+			double a = (double) AxisAlignedBBFieldResolver.resolve("a").get(axisAlignedBB);
+			double b = (double) AxisAlignedBBFieldResolver.resolve("b").get(axisAlignedBB);
+			double c = (double) AxisAlignedBBFieldResolver.resolve("c").get(axisAlignedBB);
+			double d = (double) AxisAlignedBBFieldResolver.resolve("d").get(axisAlignedBB);
+			double e = (double) AxisAlignedBBFieldResolver.resolve("e").get(axisAlignedBB);
+			double f = (double) AxisAlignedBBFieldResolver.resolve("f").get(axisAlignedBB);
+
+			return new BoundingBox(a, b, c, d, e, f);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public BoundingBox expand(double x, double y, double z) {
@@ -164,16 +185,30 @@ public class BoundingBox {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) { return true; }
-		if (o == null || getClass() != o.getClass()) { return false; }
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
 		BoundingBox that = (BoundingBox) o;
 
-		if (Double.compare(that.minX, minX) != 0) { return false; }
-		if (Double.compare(that.minY, minY) != 0) { return false; }
-		if (Double.compare(that.minZ, minZ) != 0) { return false; }
-		if (Double.compare(that.maxX, maxX) != 0) { return false; }
-		if (Double.compare(that.maxY, maxY) != 0) { return false; }
+		if (Double.compare(that.minX, minX) != 0) {
+			return false;
+		}
+		if (Double.compare(that.minY, minY) != 0) {
+			return false;
+		}
+		if (Double.compare(that.minZ, minZ) != 0) {
+			return false;
+		}
+		if (Double.compare(that.maxX, maxX) != 0) {
+			return false;
+		}
+		if (Double.compare(that.maxY, maxY) != 0) {
+			return false;
+		}
 		return Double.compare(that.maxZ, maxZ) == 0;
 
 	}
@@ -200,21 +235,6 @@ public class BoundingBox {
 	public Object toNMS() {
 		try {
 			return AxisAlignedBB.getConstructor(double.class, double.class, double.class, double.class, double.class, double.class).newInstance(minX, minY, minZ, maxX, maxY, maxZ);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public static BoundingBox fromNMS(Object axisAlignedBB) {
-		try {
-			double a = (double) AxisAlignedBBFieldResolver.resolve("a").get(axisAlignedBB);
-			double b = (double) AxisAlignedBBFieldResolver.resolve("b").get(axisAlignedBB);
-			double c = (double) AxisAlignedBBFieldResolver.resolve("c").get(axisAlignedBB);
-			double d = (double) AxisAlignedBBFieldResolver.resolve("d").get(axisAlignedBB);
-			double e = (double) AxisAlignedBBFieldResolver.resolve("e").get(axisAlignedBB);
-			double f = (double) AxisAlignedBBFieldResolver.resolve("f").get(axisAlignedBB);
-
-			return new BoundingBox(a, b, c, d, e, f);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
