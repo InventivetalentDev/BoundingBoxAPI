@@ -1,31 +1,3 @@
-/*
- * Copyright 2016 inventivetalent. All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without modification, are
- *  permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this list of
- *        conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this list
- *        of conditions and the following disclaimer in the documentation and/or other materials
- *        provided with the distribution.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ''AS IS'' AND ANY EXPRESS OR IMPLIED
- *  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR
- *  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- *  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- *  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *  The views and conclusions contained in the software and documentation are those of the
- *  authors and contributors and should not be interpreted as representing official policies,
- *  either expressed or implied, of anybody else.
- */
-
 package org.inventivetalent.boundingbox;
 
 import org.bukkit.Location;
@@ -41,6 +13,7 @@ import org.inventivetalent.reflection.resolver.minecraft.NMSClassResolver;
 import org.inventivetalent.vectors.d3.Vector3DDouble;
 import org.inventivetalent.vectors.d3.Vector3DInt;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class BoundingBoxAPI {
 
 	static NMSClassResolver nmsClassResolver = new NMSClassResolver();
@@ -121,62 +94,56 @@ public class BoundingBoxAPI {
 	}
 
 	public static Runnable drawParticleOutline(final BoundingBox boundingBox, final World world, final org.bukkit.Particle particle) {
-		return new Runnable() {
-			@Override
-			public void run() {
-				Vector3DInt minCorner = new Vector3DInt((int) (boundingBox.minX * 1000), (int) (boundingBox.minY * 1000), (int) (boundingBox.minZ * 1000));
-				Vector3DInt maxCorner = new Vector3DInt((int) (boundingBox.maxX * 1000), (int) (boundingBox.maxY * 1000), (int) (boundingBox.maxZ * 1000));
+		return () -> {
+            Vector3DInt minCorner = new Vector3DInt((int) (boundingBox.minX * 1000), (int) (boundingBox.minY * 1000), (int) (boundingBox.minZ * 1000));
+            Vector3DInt maxCorner = new Vector3DInt((int) (boundingBox.maxX * 1000), (int) (boundingBox.maxY * 1000), (int) (boundingBox.maxZ * 1000));
 
-				int i = 0;
-				for (int x = minCorner.getX(); x <= maxCorner.getX(); x += 20) {
-					for (int z = minCorner.getZ(); z <= maxCorner.getZ(); z += 20) {
-						for (int y = minCorner.getY(); y <= maxCorner.getY(); y += 20) {
-							Vector3DDouble vector = new Vector3DDouble(x / 1000.D, y / 1000.0D, z / 1000.0D);
-							int edgeIntersectionCount = 0;
+            int i = 0;
+            for (int x = minCorner.getX(); x <= maxCorner.getX(); x += 20) {
+                for (int z = minCorner.getZ(); z <= maxCorner.getZ(); z += 20) {
+                    for (int y = minCorner.getY(); y <= maxCorner.getY(); y += 20) {
+                        Vector3DDouble vector = new Vector3DDouble(x / 1000.D, y / 1000.0D, z / 1000.0D);
+                        int edgeIntersectionCount = 0;
 
-							//https://bukkit.org/threads/calculating-the-edges-of-a-rectangle-cuboid-discussion.78267/#post-1142330
-							if (Math.abs(x - minCorner.getX()) < 8 || Math.abs(x - maxCorner.getX()) < 8) { edgeIntersectionCount++; }
-							if (Math.abs(y - minCorner.getY()) < 8 || Math.abs(y - maxCorner.getY()) < 8) { edgeIntersectionCount++; }
-							if (Math.abs(z - minCorner.getZ()) < 8 || Math.abs(z - maxCorner.getZ()) < 8) { edgeIntersectionCount++; }
-							if (edgeIntersectionCount >= 2) {
-								if (i++ % 9 != 0) { continue; }
-								world.spawnParticle(particle, vector.toBukkitLocation(world), 1);
-							}
-						}
-					}
-				}
-			}
-		};
+                        //https://bukkit.org/threads/calculating-the-edges-of-a-rectangle-cuboid-discussion.78267/#post-1142330
+                        if (Math.abs(x - minCorner.getX()) < 8 || Math.abs(x - maxCorner.getX()) < 8) { edgeIntersectionCount++; }
+                        if (Math.abs(y - minCorner.getY()) < 8 || Math.abs(y - maxCorner.getY()) < 8) { edgeIntersectionCount++; }
+                        if (Math.abs(z - minCorner.getZ()) < 8 || Math.abs(z - maxCorner.getZ()) < 8) { edgeIntersectionCount++; }
+                        if (edgeIntersectionCount >= 2) {
+                            if (i++ % 9 != 0) { continue; }
+                            world.spawnParticle(particle, vector.toBukkitLocation(world), 1);
+                        }
+                    }
+                }
+            }
+        };
 	}
 
 	public static Runnable drawParticleOutline(final BoundingBox boundingBox, final World world, final ParticleEffect particle) {
-		return new Runnable() {
-			@Override
-			public void run() {
-				Vector3DInt minCorner = new Vector3DInt((int) (boundingBox.minX * 1000), (int) (boundingBox.minY * 1000), (int) (boundingBox.minZ * 1000));
-				Vector3DInt maxCorner = new Vector3DInt((int) (boundingBox.maxX * 1000), (int) (boundingBox.maxY * 1000), (int) (boundingBox.maxZ * 1000));
+		return () -> {
+            Vector3DInt minCorner = new Vector3DInt((int) (boundingBox.minX * 1000), (int) (boundingBox.minY * 1000), (int) (boundingBox.minZ * 1000));
+            Vector3DInt maxCorner = new Vector3DInt((int) (boundingBox.maxX * 1000), (int) (boundingBox.maxY * 1000), (int) (boundingBox.maxZ * 1000));
 
-				int i = 0;
-				for (int x = minCorner.getX(); x <= maxCorner.getX(); x += 20) {
-					for (int z = minCorner.getZ(); z <= maxCorner.getZ(); z += 20) {
-						for (int y = minCorner.getY(); y <= maxCorner.getY(); y += 20) {
-							Vector3DDouble vector = new Vector3DDouble(x / 1000.D, y / 1000.0D, z / 1000.0D);
-							int edgeIntersectionCount = 0;
+            int i = 0;
+            for (int x = minCorner.getX(); x <= maxCorner.getX(); x += 20) {
+                for (int z = minCorner.getZ(); z <= maxCorner.getZ(); z += 20) {
+                    for (int y = minCorner.getY(); y <= maxCorner.getY(); y += 20) {
+                        Vector3DDouble vector = new Vector3DDouble(x / 1000.D, y / 1000.0D, z / 1000.0D);
+                        int edgeIntersectionCount = 0;
 
-							//https://bukkit.org/threads/calculating-the-edges-of-a-rectangle-cuboid-discussion.78267/#post-1142330
-							if (Math.abs(x - minCorner.getX()) < 8 || Math.abs(x - maxCorner.getX()) < 8) { edgeIntersectionCount++; }
-							if (Math.abs(y - minCorner.getY()) < 8 || Math.abs(y - maxCorner.getY()) < 8) { edgeIntersectionCount++; }
-							if (Math.abs(z - minCorner.getZ()) < 8 || Math.abs(z - maxCorner.getZ()) < 8) { edgeIntersectionCount++; }
-							if (edgeIntersectionCount >= 2) {
-								if (i++ % 9 != 0) { continue; }
-								//								world.spawnParticle(particle, vector.toBukkitLocation(world), 1);
-								particle.send(world.getPlayers(), vector.toBukkitLocation(world), 0, 0, 0, 0, 1);
-							}
-						}
-					}
-				}
-			}
-		};
+                        //https://bukkit.org/threads/calculating-the-edges-of-a-rectangle-cuboid-discussion.78267/#post-1142330
+                        if (Math.abs(x - minCorner.getX()) < 8 || Math.abs(x - maxCorner.getX()) < 8) { edgeIntersectionCount++; }
+                        if (Math.abs(y - minCorner.getY()) < 8 || Math.abs(y - maxCorner.getY()) < 8) { edgeIntersectionCount++; }
+                        if (Math.abs(z - minCorner.getZ()) < 8 || Math.abs(z - maxCorner.getZ()) < 8) { edgeIntersectionCount++; }
+                        if (edgeIntersectionCount >= 2) {
+                            if (i++ % 9 != 0) { continue; }
+                            //								world.spawnParticle(particle, vector.toBukkitLocation(world), 1);
+                            particle.send(world.getPlayers(), vector.toBukkitLocation(world), 0, 0, 0, 0, 1);
+                        }
+                    }
+                }
+            }
+        };
 	}
 
 }
