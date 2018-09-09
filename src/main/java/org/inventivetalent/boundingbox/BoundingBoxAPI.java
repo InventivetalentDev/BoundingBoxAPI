@@ -38,20 +38,24 @@ import org.inventivetalent.reflection.resolver.FieldResolver;
 import org.inventivetalent.reflection.resolver.MethodResolver;
 import org.inventivetalent.reflection.resolver.ResolverQuery;
 import org.inventivetalent.reflection.resolver.minecraft.NMSClassResolver;
+import org.inventivetalent.reflection.resolver.wrapper.MethodWrapper;
 import org.inventivetalent.vectors.d3.Vector3DDouble;
 import org.inventivetalent.vectors.d3.Vector3DInt;
+
+import java.lang.reflect.Method;
 
 public class BoundingBoxAPI {
 
 	static NMSClassResolver nmsClassResolver = new NMSClassResolver();
 
 	static Class<?> Entity        = nmsClassResolver.resolveSilent("Entity");
-	static Class<?> World = nmsClassResolver.resolveSilent("World");
+	static Class<?> World         = nmsClassResolver.resolveSilent("World");
 	static Class<?> Block         = nmsClassResolver.resolveSilent("Block");
 	static Class<?> BlockPosition = nmsClassResolver.resolveSilent("BlockPosition");
 	static Class<?> Chunk         = nmsClassResolver.resolveSilent("Chunk");
 	static Class<?> IBlockData    = nmsClassResolver.resolveSilent("IBlockData");
 	static Class<?> IBlockAccess  = nmsClassResolver.resolveSilent("IBlockAccess");
+	static Class<?> VoxelShape;
 
 	static FieldResolver EntityFieldResolver = new FieldResolver(Entity);
 	static FieldResolver BlockFieldResolver  = new FieldResolver(Block);
@@ -60,6 +64,7 @@ public class BoundingBoxAPI {
 	static MethodResolver ChunkMethodResolver      = new MethodResolver(Chunk);
 	static MethodResolver IBlockDataMethodResolver = new MethodResolver(IBlockData);
 	static MethodResolver EntityMethodResolver     = new MethodResolver(Entity);
+	static MethodResolver VoxelShapeMethodResolver;
 
 	public static BoundingBox getBoundingBox(Entity entity) {
 		return getAbsoluteBoundingBox(entity).translate(new Vector3DDouble(entity.getLocation().toVector().multiply(-1)));
@@ -100,15 +105,26 @@ public class BoundingBoxAPI {
 			Location location = block.getLocation();
 
 			Object blockPosition = BlockPosition.getConstructor(double.class, double.class, double.class).newInstance(location.getX(), location.getY(), location.getZ());
-			Object iBlockData = ChunkMethodResolver.resolve(new ResolverQuery("getBlockData", BlockPosition)).invoke(Minecraft.getHandle(block.getChunk()), blockPosition);
+			Object iBlockData = ChunkMethodResolver.resolve(new ResolverQuery(Minecraft.VERSION.newerThan(Minecraft.Version.v1_13_R1) ? "getType" : "getBlockData", BlockPosition)).invoke(Minecraft.getHandle(block.getChunk()), blockPosition);
 			Object iBlockAccess = Minecraft.getHandle(location.getWorld());
 			Object nmsBlock = IBlockDataMethodResolver.resolve("getBlock").invoke(iBlockData);
 
-			if(Minecraft.VERSION.newerThan(Minecraft.Version.v1_9_R1)) {
-				return BoundingBox.fromNMS(BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition));
-			}else{
-				return BoundingBox.fromNMS(BlockMethodResolver.resolve(new ResolverQuery("a", World, BlockPosition, IBlockData)).invoke(nmsBlock, iBlockAccess/*world*/, blockPosition, iBlockData));
+			Object axisAlignedBB;
+			if (Minecraft.VERSION.newerThan(Minecraft.Version.v1_13_R1)) {
+				if (VoxelShape == null) {
+					VoxelShape = nmsClassResolver.resolveSilent("VoxelShape");
+				}
+				if (VoxelShapeMethodResolver == null) {
+					VoxelShapeMethodResolver = new MethodResolver(VoxelShape);
+				}
+				Object voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition);
+				axisAlignedBB = VoxelShapeMethodResolver.resolveSignature("AxisAlignedBB a()").invoke(voxelShape);
+			} else if (Minecraft.VERSION.newerThan(Minecraft.Version.v1_9_R1)) {
+				axisAlignedBB = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition);
+			} else {
+				axisAlignedBB = BlockMethodResolver.resolve(new ResolverQuery("a", World, BlockPosition, IBlockData)).invoke(nmsBlock, iBlockAccess/*world*/, blockPosition, iBlockData);
 			}
+			return BoundingBox.fromNMS(axisAlignedBB);
 		} catch (RuntimeException e) {
 			throw e;
 		} catch (Exception e) {
