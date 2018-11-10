@@ -234,12 +234,12 @@ public class BoundingBox {
 
 	public static BoundingBox fromNMS(Object axisAlignedBB) {
 		try {
-			double a = (double) AxisAlignedBBFieldResolver.resolve("a").get(axisAlignedBB);
-			double b = (double) AxisAlignedBBFieldResolver.resolve("b").get(axisAlignedBB);
-			double c = (double) AxisAlignedBBFieldResolver.resolve("c").get(axisAlignedBB);
-			double d = (double) AxisAlignedBBFieldResolver.resolve("d").get(axisAlignedBB);
-			double e = (double) AxisAlignedBBFieldResolver.resolve("e").get(axisAlignedBB);
-			double f = (double) AxisAlignedBBFieldResolver.resolve("f").get(axisAlignedBB);
+			double a = (double) AxisAlignedBBFieldResolver.resolve("a", "minX").get(axisAlignedBB);
+			double b = (double) AxisAlignedBBFieldResolver.resolve("b", "minY").get(axisAlignedBB);
+			double c = (double) AxisAlignedBBFieldResolver.resolve("c", "minZ").get(axisAlignedBB);
+			double d = (double) AxisAlignedBBFieldResolver.resolve("d", "maxX").get(axisAlignedBB);
+			double e = (double) AxisAlignedBBFieldResolver.resolve("e", "maxY").get(axisAlignedBB);
+			double f = (double) AxisAlignedBBFieldResolver.resolve("f", "maxZ").get(axisAlignedBB);
 
 			return new BoundingBox(a, b, c, d, e, f);
 		} catch (Exception e) {
