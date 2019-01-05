@@ -38,11 +38,8 @@ import org.inventivetalent.reflection.resolver.FieldResolver;
 import org.inventivetalent.reflection.resolver.MethodResolver;
 import org.inventivetalent.reflection.resolver.ResolverQuery;
 import org.inventivetalent.reflection.resolver.minecraft.NMSClassResolver;
-import org.inventivetalent.reflection.resolver.wrapper.MethodWrapper;
 import org.inventivetalent.vectors.d3.Vector3DDouble;
 import org.inventivetalent.vectors.d3.Vector3DInt;
-
-import java.lang.reflect.Method;
 
 public class BoundingBoxAPI {
 
@@ -118,7 +115,7 @@ public class BoundingBoxAPI {
 					VoxelShapeMethodResolver = new MethodResolver(VoxelShape);
 				}
 				Object voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition);
-				axisAlignedBB = VoxelShapeMethodResolver.resolveSignature("AxisAlignedBB a()").invoke(voxelShape);
+				axisAlignedBB = VoxelShapeMethodResolver.resolveSignature("AxisAlignedBB a()", "AxisAlignedBB getBoundingBox()").invoke(voxelShape);
 			} else if (Minecraft.VERSION.newerThan(Minecraft.Version.v1_9_R1)) {
 				axisAlignedBB = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition);
 			} else {
