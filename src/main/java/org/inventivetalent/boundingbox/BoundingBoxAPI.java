@@ -53,6 +53,7 @@ public class BoundingBoxAPI {
 	static Class<?> IBlockData    = nmsClassResolver.resolveSilent("IBlockData");
 	static Class<?> IBlockAccess  = nmsClassResolver.resolveSilent("IBlockAccess");
 	static Class<?> VoxelShape;
+	static Class<?> VoxelShapeCollision;
 
 	static FieldResolver EntityFieldResolver = new FieldResolver(Entity);
 	static FieldResolver BlockFieldResolver  = new FieldResolver(Block);
@@ -62,6 +63,7 @@ public class BoundingBoxAPI {
 	static MethodResolver IBlockDataMethodResolver = new MethodResolver(IBlockData);
 	static MethodResolver EntityMethodResolver     = new MethodResolver(Entity);
 	static MethodResolver VoxelShapeMethodResolver;
+	static MethodResolver VoxelShapeCollisionMethodResolver;
 
 	public static BoundingBox getBoundingBox(Entity entity) {
 		return getAbsoluteBoundingBox(entity).translate(new Vector3DDouble(entity.getLocation().toVector().multiply(-1)));
@@ -114,7 +116,19 @@ public class BoundingBoxAPI {
 				if (VoxelShapeMethodResolver == null) {
 					VoxelShapeMethodResolver = new MethodResolver(VoxelShape);
 				}
-				Object voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition);
+				Object voxelShape;
+				if (Minecraft.VERSION.newerThan(Minecraft.Version.v1_14_R1)) {
+					if (VoxelShapeCollision == null) {
+						VoxelShapeCollision = nmsClassResolver.resolveSilent("VoxelShapeCollision");
+					}
+					if (VoxelShapeCollisionMethodResolver == null) {
+						VoxelShapeCollisionMethodResolver = new MethodResolver(VoxelShapeCollision);
+					}
+					Object collision = VoxelShapeCollisionMethodResolver.resolve("a").invoke(null);
+					voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition, VoxelShapeCollision)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition, collision);
+				} else {
+					voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition);
+				}
 				axisAlignedBB = VoxelShapeMethodResolver.resolveSignature("AxisAlignedBB a()", "AxisAlignedBB getBoundingBox()").invoke(voxelShape);
 			} else if (Minecraft.VERSION.newerThan(Minecraft.Version.v1_9_R1)) {
 				axisAlignedBB = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition);
