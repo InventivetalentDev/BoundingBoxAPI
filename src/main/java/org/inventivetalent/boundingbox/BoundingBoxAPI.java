@@ -124,7 +124,8 @@ public class BoundingBoxAPI {
 					if (VoxelShapeCollisionMethodResolver == null) {
 						VoxelShapeCollisionMethodResolver = new MethodResolver(VoxelShapeCollision);
 					}
-					Object collision = VoxelShapeCollisionMethodResolver.resolve("a").invoke(null);
+					/// static VoxelShapeCollision a()
+					Object collision = VoxelShapeCollisionMethodResolver.resolveSignature("VoxelShapeCollision a()").invoke(null);
 					voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition, VoxelShapeCollision)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition, collision);
 				} else {
 					voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition);
