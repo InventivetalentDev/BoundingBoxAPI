@@ -52,6 +52,7 @@ public class BoundingBoxAPI {
 	static Class<?> Chunk         = nmsClassResolver.resolveSilent("Chunk");
 	static Class<?> IBlockData    = nmsClassResolver.resolveSilent("IBlockData");
 	static Class<?> IBlockAccess  = nmsClassResolver.resolveSilent("IBlockAccess");
+	static Class<?> BlockData     = nmsClassResolver.resolveSilent("BlockBase$BlockData");
 	static Class<?> VoxelShape;
 	static Class<?> VoxelShapeCollision;
 
@@ -62,6 +63,7 @@ public class BoundingBoxAPI {
 	static MethodResolver ChunkMethodResolver      = new MethodResolver(Chunk);
 	static MethodResolver IBlockDataMethodResolver = new MethodResolver(IBlockData);
 	static MethodResolver EntityMethodResolver     = new MethodResolver(Entity);
+	static MethodResolver BlockDataMethodResolver;
 	static MethodResolver VoxelShapeMethodResolver;
 	static MethodResolver VoxelShapeCollisionMethodResolver;
 
@@ -106,6 +108,13 @@ public class BoundingBoxAPI {
 			Object blockPosition = BlockPosition.getConstructor(double.class, double.class, double.class).newInstance(location.getX(), location.getY(), location.getZ());
 			Object iBlockData = ChunkMethodResolver.resolve(new ResolverQuery(Minecraft.VERSION.newerThan(Minecraft.Version.v1_13_R1) ? "getType" : "getBlockData", BlockPosition)).invoke(Minecraft.getHandle(block.getChunk()), blockPosition);
 			Object iBlockAccess = Minecraft.getHandle(location.getWorld());
+			MethodResolver blockResolver = IBlockDataMethodResolver;
+			if (Minecraft.VERSION.newerThan(Minecraft.Version.v1_16_R1)) {
+				if(BlockDataMethodResolver == null) {
+					BlockDataMethodResolver = new MethodResolver(BlockData);
+				}
+				blockResolver = BlockDataMethodResolver;
+			}
 			Object nmsBlock = IBlockDataMethodResolver.resolve("getBlock").invoke(iBlockData);
 
 			Object axisAlignedBB;
