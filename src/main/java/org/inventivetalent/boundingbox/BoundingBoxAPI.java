@@ -135,7 +135,11 @@ public class BoundingBoxAPI {
 					}
 					/// static VoxelShapeCollision a()
 					Object collision = VoxelShapeCollisionMethodResolver.resolveSignature("VoxelShapeCollision a()").invoke(null);
-					voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition, VoxelShapeCollision)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition, collision);
+					if (Minecraft.VERSION.newerThan(Minecraft.Version.v1_16_R1)) {
+						voxelShape = BlockDataMethodResolver.resolve(new ResolverQuery("a", IBlockAccess, BlockPosition, VoxelShapeCollision)).invoke(iBlockData, iBlockAccess, blockPosition, collision);
+					} else {
+						voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition, VoxelShapeCollision)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition, collision);
+					}
 				} else {
 					voxelShape = BlockMethodResolver.resolve(new ResolverQuery("a", IBlockData, IBlockAccess, BlockPosition)).invoke(nmsBlock, iBlockData, iBlockAccess, blockPosition);
 				}
