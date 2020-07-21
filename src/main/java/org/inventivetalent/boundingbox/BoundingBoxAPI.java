@@ -115,7 +115,7 @@ public class BoundingBoxAPI {
 				}
 				blockResolver = BlockDataMethodResolver;
 			}
-			Object nmsBlock = IBlockDataMethodResolver.resolve("getBlock").invoke(iBlockData);
+			Object nmsBlock = blockResolver.resolve("getBlock").invoke(iBlockData);
 
 			Object axisAlignedBB;
 			if (Minecraft.VERSION.newerThan(Minecraft.Version.v1_13_R1)) {
