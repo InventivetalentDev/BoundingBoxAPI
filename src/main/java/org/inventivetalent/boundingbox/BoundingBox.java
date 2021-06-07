@@ -29,13 +29,11 @@
 package org.inventivetalent.boundingbox;
 
 import com.google.gson.annotations.Expose;
-import lombok.Data;
 import org.bukkit.util.Vector;
 import org.inventivetalent.reflection.resolver.FieldResolver;
 import org.inventivetalent.reflection.resolver.minecraft.NMSClassResolver;
 import org.inventivetalent.vectors.d3.Vector3DDouble;
 
-@Data
 public class BoundingBox {
 
     static NMSClassResolver nmsClassResolver = new NMSClassResolver();
@@ -45,17 +43,20 @@ public class BoundingBox {
     static FieldResolver AxisAlignedBBFieldResolver = new FieldResolver(AxisAlignedBB);
 
     @Expose
-    public final double minX;
+    public double minX;
     @Expose
-    public final double minY;
+    public double minY;
     @Expose
-    public final double minZ;
+    public double minZ;
     @Expose
-    public final double maxX;
+    public double maxX;
     @Expose
-    public final double maxY;
+    public double maxY;
     @Expose
-    public final double maxZ;
+    public double maxZ;
+
+    public BoundingBox() {
+    }
 
     public BoundingBox(double x1, double y1, double z1, double x2, double y2, double z2) {
         this.minX = Math.min(x1, x2);
@@ -72,6 +73,30 @@ public class BoundingBox {
 
     public BoundingBox(Vector3DDouble vector1, Vector3DDouble vector2) {
         this(vector1.getX(), vector1.getY(), vector1.getZ(), vector2.getX(), vector2.getY(), vector2.getZ());
+    }
+
+    public double getMinX() {
+        return minX;
+    }
+
+    public double getMinY() {
+        return minY;
+    }
+
+    public double getMinZ() {
+        return minZ;
+    }
+
+    public double getMaxX() {
+        return maxX;
+    }
+
+    public double getMaxY() {
+        return maxY;
+    }
+
+    public double getMaxZ() {
+        return maxZ;
     }
 
     public BoundingBox expand(double x, double y, double z) {
