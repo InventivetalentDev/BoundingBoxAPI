@@ -38,7 +38,7 @@ public class BoundingBox {
 
     static NMSClassResolver nmsClassResolver = new NMSClassResolver();
 
-    static Class<?> AxisAlignedBB = nmsClassResolver.resolveSilent("AxisAlignedBB");
+    static Class<?> AxisAlignedBB = nmsClassResolver.resolveSilent("world.phys.AxisAlignedBB", "AxisAlignedBB");
 
     static FieldResolver AxisAlignedBBFieldResolver = new FieldResolver(AxisAlignedBB);
 
