@@ -35,6 +35,7 @@ import org.bukkit.entity.Entity;
 import org.inventivetalent.particle.ParticleEffect;
 import org.inventivetalent.reflection.minecraft.Minecraft;
 import org.inventivetalent.reflection.minecraft.MinecraftVersion;
+import org.inventivetalent.reflection.resolver.ClassResolver;
 import org.inventivetalent.reflection.resolver.FieldResolver;
 import org.inventivetalent.reflection.resolver.MethodResolver;
 import org.inventivetalent.reflection.resolver.ResolverQuery;
@@ -44,16 +45,17 @@ import org.inventivetalent.vectors.d3.Vector3DInt;
 
 public class BoundingBoxAPI {
 
+    static ClassResolver classResolver = new ClassResolver();
     static NMSClassResolver nmsClassResolver = new NMSClassResolver();
 
-    static Class<?> Entity = nmsClassResolver.resolveSilent("Entity");
-    static Class<?> World = nmsClassResolver.resolveSilent("World");
-    static Class<?> Block = nmsClassResolver.resolveSilent("Block");
-    static Class<?> BlockPosition = nmsClassResolver.resolveSilent("BlockPosition");
-    static Class<?> Chunk = nmsClassResolver.resolveSilent("Chunk");
-    static Class<?> IBlockData = nmsClassResolver.resolveSilent("IBlockData");
-    static Class<?> IBlockAccess = nmsClassResolver.resolveSilent("IBlockAccess");
-    static Class<?> BlockData = nmsClassResolver.resolveSilent("BlockBase$BlockData");
+    static Class<?> Entity = nmsClassResolver.resolveSilent("world.entity.Entity", "Entity");
+    static Class<?> World = nmsClassResolver.resolveSilent("world.level.World", "World");
+    static Class<?> Block = nmsClassResolver.resolveSilent("world.level.block.Block", "Block");
+    static Class<?> BlockPosition = nmsClassResolver.resolveSilent("core.BlockPosition");
+    static Class<?> Chunk = nmsClassResolver.resolveSilent("world.level.chunk.Chunk", "Chunk");
+    static Class<?> IBlockData = nmsClassResolver.resolveSilent("world.level.block.state.IBlockData", "IBlockData");
+    static Class<?> IBlockAccess = nmsClassResolver.resolveSilent("world.level.IBlockAccess", "IBlockAccess");
+    static Class<?> BlockData = nmsClassResolver.resolveSilent("world.level.block.state.BlockBase$BlockData", "BlockBase$BlockData");
     static Class<?> VoxelShape;
     static Class<?> VoxelShapeCollision;
 
@@ -121,7 +123,7 @@ public class BoundingBoxAPI {
             Object axisAlignedBB;
             if (MinecraftVersion.VERSION.newerThan(Minecraft.Version.v1_13_R1)) {
                 if (VoxelShape == null) {
-                    VoxelShape = nmsClassResolver.resolveSilent("VoxelShape");
+                    VoxelShape = nmsClassResolver.resolveSilent("world.phys.shapes.VoxelShape", "VoxelShape");
                 }
                 if (VoxelShapeMethodResolver == null) {
                     VoxelShapeMethodResolver = new MethodResolver(VoxelShape);
@@ -129,7 +131,7 @@ public class BoundingBoxAPI {
                 Object voxelShape;
                 if (MinecraftVersion.VERSION.newerThan(Minecraft.Version.v1_14_R1)) {
                     if (VoxelShapeCollision == null) {
-                        VoxelShapeCollision = nmsClassResolver.resolveSilent("VoxelShapeCollision");
+                        VoxelShapeCollision = nmsClassResolver.resolveSilent("world.phys.shapes.VoxelShapeCollision", "VoxelShapeCollision");
                     }
                     if (VoxelShapeCollisionMethodResolver == null) {
                         VoxelShapeCollisionMethodResolver = new MethodResolver(VoxelShapeCollision);
@@ -187,7 +189,7 @@ public class BoundingBoxAPI {
                                 edgeIntersectionCount++;
                             }
                             if (edgeIntersectionCount >= 2) {
-                                if (i++ % 9 != 0) { continue; }
+                                if (i++ % 9 != 0) {continue;}
                                 world.spawnParticle(particle, vector.toBukkitLocation(world), 1);
                             }
                         }
@@ -222,7 +224,7 @@ public class BoundingBoxAPI {
                                 edgeIntersectionCount++;
                             }
                             if (edgeIntersectionCount >= 2) {
-                                if (i++ % 9 != 0) { continue; }
+                                if (i++ % 9 != 0) {continue;}
                                 //								world.spawnParticle(particle, vector.toBukkitLocation(world), 1);
                                 particle.send(world.getPlayers(), vector.toBukkitLocation(world), 0, 0, 0, 0, 1);
                             }
