@@ -109,7 +109,9 @@ public class BoundingBoxAPI {
             Location location = block.getLocation();
 
             Object blockPosition = BlockPosition.getConstructor(double.class, double.class, double.class).newInstance(location.getX(), location.getY(), location.getZ());
-            Object iBlockData = ChunkMethodResolver.resolve(new ResolverQuery(MinecraftVersion.VERSION.newerThan(Minecraft.Version.v1_13_R1) ? "getType" : "getBlockData", BlockPosition)).invoke(Minecraft.getHandle(block.getChunk()), blockPosition);
+
+            ResolverQuery getTypeQuery = new ResolverQuery(MinecraftVersion.VERSION.newerThan(Minecraft.Version.v1_18_R1) ? "a_" : MinecraftVersion.VERSION.newerThan(Minecraft.Version.v1_13_R1) ? "getType" : "getBlockData", BlockPosition);
+            Object iBlockData = ChunkMethodResolver.resolve(getTypeQuery).invoke(Minecraft.getHandle(block.getChunk()), blockPosition);
             Object iBlockAccess = Minecraft.getHandle(location.getWorld());
             MethodResolver blockResolver = IBlockDataMethodResolver;
             if (MinecraftVersion.VERSION.newerThan(Minecraft.Version.v1_16_R1)) {
@@ -118,7 +120,12 @@ public class BoundingBoxAPI {
                 }
                 blockResolver = BlockDataMethodResolver;
             }
-            Object nmsBlock = blockResolver.resolve("getBlock").invoke(iBlockData);
+            Object nmsBlock;
+            if (MinecraftVersion.VERSION.newerThan(Minecraft.Version.v1_18_R1)) {
+                nmsBlock = blockResolver.resolveSignature("Block b()").invoke(iBlockData);
+            } else {
+                nmsBlock = blockResolver.resolve("getBlock", "b").invoke(iBlockData);
+            }
 
             Object axisAlignedBB;
             if (MinecraftVersion.VERSION.newerThan(Minecraft.Version.v1_13_R1)) {
