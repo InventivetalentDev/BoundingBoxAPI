@@ -31,6 +31,7 @@ package org.inventivetalent.boundingbox;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.inventivetalent.reflection.accessor.FieldAccessor;
 import org.inventivetalent.reflection.minecraft.Minecraft;
 import org.inventivetalent.reflection.minecraft.MinecraftVersion;
 import org.inventivetalent.reflection.resolver.ClassResolver;
@@ -53,6 +54,7 @@ public class BoundingBoxAPI {
     static Class<?> IBlockData = nmsClassResolver.resolveSilent("world.level.block.state.IBlockData", "IBlockData");
     static Class<?> IBlockAccess = nmsClassResolver.resolveSilent("world.level.IBlockAccess", "IBlockAccess");
     static Class<?> BlockData = nmsClassResolver.resolveSilent("world.level.block.state.BlockBase$BlockData", "BlockBase$BlockData");
+    static Class<?> AxisAlignedBB = nmsClassResolver.resolveSilent("world.phys.AxisAlignedBB", "AxisAlignedBB");
     static Class<?> VoxelShape;
     static Class<?> VoxelShapeCollision;
 
@@ -73,7 +75,8 @@ public class BoundingBoxAPI {
 
     public static BoundingBox getAbsoluteBoundingBox(Entity entity) {
         try {
-            return BoundingBox.fromNMS(EntityFieldResolver.resolveAccessor("boundingBox").get(Minecraft.getHandle(entity)));
+            FieldAccessor field = EntityFieldResolver.resolveByLastTypeAccessor(AxisAlignedBB);
+            return field.get(Minecraft.getHandle(entity));
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -83,7 +86,8 @@ public class BoundingBoxAPI {
 
     public static void setBoundingBox(Entity entity, BoundingBox boundingBox) {
         try {
-            EntityFieldResolver.resolveAccessor("boundingBox").set(Minecraft.getHandle(entity), boundingBox.toNMS());
+            FieldAccessor field = EntityFieldResolver.resolveByLastTypeAccessor(AxisAlignedBB);
+            field.set(Minecraft.getHandle(entity), boundingBox.toNMS());
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
